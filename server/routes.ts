@@ -9,7 +9,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Search establishments
   app.get("/api/establishments/search", async (req, res) => {
     try {
-      const params = searchSchema.parse(req.query);
+      // Convert string query parameters to proper types
+      const queryParams = {
+        ...req.query,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+      };
+      
+      const params = searchSchema.parse(queryParams);
       const results = await storage.getEstablishments(params);
       res.json(results);
     } catch (error) {
