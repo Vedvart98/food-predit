@@ -1,0 +1,646 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant & Hotel Health Inspector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        'grade-a': '#059669',
+                        'grade-b': '#D97706', 
+                        'grade-c': '#DC2626',
+                        'primary-blue': '#2563EB'
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-virus text-primary-blue text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-900">Health Inspector</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="text-gray-700 hover:text-primary-blue transition-colors">Search</a>
+                    <a href="#" class="text-gray-700 hover:text-primary-blue transition-colors">About</a>
+                    <a href="#" class="text-gray-700 hover:text-primary-blue transition-colors">API</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: SearchSection -->
+    <section class="bg-white py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Find Restaurant & Hotel Health Ratings</h2>
+            <p class="text-xl text-gray-600 mb-8">Get instant access to health inspection scores, violations, and food safety certifications</p>
+            
+            <!-- @STATE: searchQuery:string = "", suggestions:array = [], isSearching:boolean = false -->
+            <div class="relative max-w-2xl mx-auto">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        placeholder="Enter restaurant or hotel name..." 
+                        class="w-full px-6 py-4 text-lg border-2 border-gray-300 rounded-xl focus:border-primary-blue focus:outline-none transition-colors pl-14"
+                        data-bind="searchQuery"
+                        data-event="input:handleSearchInput"
+                        data-mock="true"
+                    />
+                    <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
+                    <button 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary-blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        data-event="click:handleSearch"
+                        data-implementation="Should trigger search API call"
+                    >
+                        Search
+                    </button>
+                </div>
+                
+                <!-- Autocomplete Suggestions -->
+                <!-- @FUNCTIONALITY: Show dropdown with suggestions based on user input -->
+                <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg mt-2 shadow-lg z-10 hidden" data-mock="true">
+                    <div class="p-2">
+                        <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded">
+                            <i class="fas fa-utensils text-gray-400 mr-3"></i>
+                            Mario's Italian Restaurant - Downtown
+                        </div>
+                        <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded">
+                            <i class="fas fa-bed text-gray-400 mr-3"></i>
+                            Grand Plaza Hotel - Midtown
+                        </div>
+                        <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded">
+                            <i class="fas fa-utensils text-gray-400 mr-3"></i>
+                            Sunrise Cafe - Brooklyn
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <span class="text-sm text-gray-500">Popular searches:</span>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors" data-mock="true">McDonald's</button>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors" data-mock="true">Marriott Hotels</button>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors" data-mock="true">Starbucks</button>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors" data-mock="true">Hilton</button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: SearchSection -->
+
+    <!-- @COMPONENT: SearchResults -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Search Results Header -->
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2" data-bind="searchResults.count" data-mock="true">Found 12 establishments for "Mario's Restaurant"</h3>
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Sort by:</span>
+                    <select class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                        <option>Health Score (High to Low)</option>
+                        <option>Name (A-Z)</option>
+                        <option>Inspection Date (Recent)</option>
+                        <option>Distance</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Filter:</span>
+                    <button class="bg-grade-a text-white px-3 py-1 rounded-md text-sm">Grade A</button>
+                    <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm">Grade B</button>
+                    <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm">Grade C</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- @MAP: searchResults.map(establishment => ( -->
+        <div class="grid gap-6 mb-6">
+            <!-- Restaurant Result Card -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow" data-mock="true">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-900 mb-1" data-bind="establishment.name">Mario's Italian Restaurant</h4>
+                                <p class="text-gray-600 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>
+                                    <span data-bind="establishment.address">123 Main Street, New York, NY 10001</span>
+                                </p>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <i class="fas fa-utensils mr-2"></i>
+                                    <span data-bind="establishment.businessType">Restaurant - Italian Cuisine</span>
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <!-- Health Grade Badge -->
+                                <div class="bg-grade-a text-white px-4 py-2 rounded-lg font-bold text-lg" data-bind="establishment.healthRating.grade">
+                                    A
+                                </div>
+                                <div class="text-sm text-gray-600 text-center">
+                                    <div class="font-semibold" data-bind="establishment.healthRating.score">Score: 95/100</div>
+                                    <div data-bind="establishment.healthRating.inspectionDate">Jan 15, 2025</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-grade-a" data-bind="establishment.stats.totalInspections">12</div>
+                                <div class="text-xs text-gray-600">Inspections</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-gray-900" data-bind="establishment.stats.violations">2</div>
+                                <div class="text-xs text-gray-600">Violations</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-primary-blue" data-bind="establishment.stats.avgScore">94</div>
+                                <div class="text-xs text-gray-600">Avg Score</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-gray-900" data-bind="establishment.stats.daysSinceInspection">32</div>
+                                <div class="text-xs text-gray-600">Days Ago</div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Violations -->
+                        <div class="mb-4">
+                            <h5 class="font-semibold text-gray-900 mb-2">Recent Violations (Last Inspection)</h5>
+                            <!-- @MAP: establishment.violations.map(violation => ( -->
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg" data-mock="true">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-900" data-bind="violation.description">Temperature Control - Cold food not maintained at proper temperature</div>
+                                        <div class="text-sm text-gray-600" data-bind="violation.code">Code: 02A - 5 points deducted</div>
+                                    </div>
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium" data-bind="violation.severity">Minor</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg" data-mock="true">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-900" data-bind="violation.description">Hand washing facilities not properly maintained</div>
+                                        <div class="text-sm text-gray-600" data-bind="violation.code">Code: 08A - 7 points deducted</div>
+                                    </div>
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium" data-bind="violation.severity">Critical</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap gap-3">
+                            <button 
+                                class="bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                                data-event="click:viewDetailedReport"
+                                data-implementation="Should open detailed inspection modal"
+                            >
+                                <i class="fas fa-file-alt mr-2"></i>
+                                View Full Report
+                            </button>
+                            <button 
+                                class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+                                data-event="click:viewInspectionHistory"
+                            >
+                                <i class="fas fa-history mr-2"></i>
+                                Inspection History
+                            </button>
+                            <button 
+                                class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+                                data-event="click:viewOnMap"
+                            >
+                                <i class="fas fa-map-marked-alt mr-2"></i>
+                                View on Map
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hotel Result Card -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow" data-mock="true">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-900 mb-1" data-bind="establishment.name">Grand Plaza Hotel</h4>
+                                <p class="text-gray-600 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>
+                                    <span data-bind="establishment.address">456 Broadway, New York, NY 10013</span>
+                                </p>
+                                <p class="text-sm text-gray-500 mt-1 flex items-center">
+                                    <i class="fas fa-bed mr-2"></i>
+                                    <span data-bind="establishment.businessType">Hotel - 4 Star</span>
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <span class="ml-1" data-bind="establishment.guestRating">4.3 (1,250 reviews)</span>
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <!-- Health Grade Badge -->
+                                <div class="bg-grade-a text-white px-4 py-2 rounded-lg font-bold text-lg" data-bind="establishment.healthRating.grade">
+                                    A
+                                </div>
+                                <div class="text-sm text-gray-600 text-center">
+                                    <div class="font-semibold" data-bind="establishment.healthRating.score">Score: 98/100</div>
+                                    <div data-bind="establishment.healthRating.inspectionDate">Dec 20, 2024</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Health Certifications -->
+                        <div class="mb-4">
+                            <h5 class="font-semibold text-gray-900 mb-2">Health & Safety Certifications</h5>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium" data-mock="true">
+                                    <i class="fas fa-certificate mr-1"></i>
+                                    ISO 22000 Food Safety
+                                </span>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium" data-mock="true">
+                                    <i class="fas fa-shield-virus mr-1"></i>
+                                    COVID-19 Safety Protocols
+                                </span>
+                                <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium" data-mock="true">
+                                    <i class="fas fa-award mr-1"></i>
+                                    HACCP Certified
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-grade-a" data-bind="establishment.stats.totalInspections">8</div>
+                                <div class="text-xs text-gray-600">Inspections</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-grade-a" data-bind="establishment.stats.violations">0</div>
+                                <div class="text-xs text-gray-600">Violations</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-primary-blue" data-bind="establishment.stats.avgScore">97</div>
+                                <div class="text-xs text-gray-600">Avg Score</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-gray-900" data-bind="establishment.stats.daysSinceInspection">25</div>
+                                <div class="text-xs text-gray-600">Days Ago</div>
+                            </div>
+                        </div>
+
+                        <!-- Safety Features -->
+                        <div class="mb-4">
+                            <h5 class="font-semibold text-gray-900 mb-2">Safety Features</h5>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    HEPA Air Filtration
+                                </div>
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Enhanced Sanitization
+                                </div>
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Contactless Check-in
+                                </div>
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    24/7 Health Monitoring
+                                </div>
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Food Safety Training
+                                </div>
+                                <div class="flex items-center text-sm text-gray-700" data-mock="true">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Emergency Protocols
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap gap-3">
+                            <button 
+                                class="bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                                data-event="click:viewDetailedReport"
+                            >
+                                <i class="fas fa-file-alt mr-2"></i>
+                                View Full Report
+                            </button>
+                            <button 
+                                class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+                                data-event="click:viewInspectionHistory"
+                            >
+                                <i class="fas fa-history mr-2"></i>
+                                Inspection History
+                            </button>
+                            <button 
+                                class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+                                data-event="click:viewCertifications"
+                            >
+                                <i class="fas fa-certificate mr-2"></i>
+                                View Certifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_MAP )) -->
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">12</span> results
+            </div>
+            <div class="flex space-x-2">
+                <button class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Previous
+                </button>
+                <button class="px-3 py-2 text-sm font-medium text-white bg-primary-blue border border-primary-blue rounded-md">
+                    1
+                </button>
+                <button class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    2
+                </button>
+                <button class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Next
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: SearchResults -->
+
+    <!-- @COMPONENT: DetailedInspectionModal -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" id="inspectionModal" data-mock="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                <!-- Modal Header -->
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-900">Detailed Inspection Report</h3>
+                    <button class="text-gray-400 hover:text-gray-600" onclick="closeModal()">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="p-6">
+                    <!-- Establishment Info -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-gray-900 mb-2" data-bind="establishment.name">Mario's Italian Restaurant</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-700">Address:</span>
+                                <span class="text-gray-600 ml-2" data-bind="establishment.address">123 Main Street, New York, NY 10001</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-700">License #:</span>
+                                <span class="text-gray-600 ml-2" data-bind="establishment.licenseNumber">NYC-REST-123456</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-700">Business Type:</span>
+                                <span class="text-gray-600 ml-2" data-bind="establishment.businessType">Restaurant - Italian Cuisine</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-700">Inspection Date:</span>
+                                <span class="text-gray-600 ml-2" data-bind="inspection.date">January 15, 2025</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Score -->
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h5 class="text-lg font-bold text-gray-900 mb-1">Overall Health Score</h5>
+                                <p class="text-gray-600">Based on comprehensive inspection criteria</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-4xl font-bold text-grade-a" data-bind="inspection.score">95</div>
+                                <div class="text-grade-a font-semibold">Grade A</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inspection Categories -->
+                    <div class="mb-6">
+                        <h5 class="text-lg font-bold text-gray-900 mb-4">Inspection Categories</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- @MAP: inspectionCategories.map(category => ( -->
+                            <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h6 class="font-semibold text-gray-900" data-bind="category.name">Food Temperature Control</h6>
+                                    <span class="text-grade-a font-bold" data-bind="category.score">18/20</span>
+                                </div>
+                                <p class="text-sm text-gray-600" data-bind="category.description">Proper storage and serving temperatures maintained</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h6 class="font-semibold text-gray-900" data-bind="category.name">Personal Hygiene</h6>
+                                    <span class="text-grade-a font-bold" data-bind="category.score">20/20</span>
+                                </div>
+                                <p class="text-sm text-gray-600" data-bind="category.description">Staff follows proper hygiene protocols</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h6 class="font-semibold text-gray-900" data-bind="category.name">Equipment & Facilities</h6>
+                                    <span class="text-yellow-600 font-bold" data-bind="category.score">15/20</span>
+                                </div>
+                                <p class="text-sm text-gray-600" data-bind="category.description">Minor maintenance issues identified</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h6 class="font-semibold text-gray-900" data-bind="category.name">Cleanliness</h6>
+                                    <span class="text-grade-a font-bold" data-bind="category.score">19/20</span>
+                                </div>
+                                <p class="text-sm text-gray-600" data-bind="category.description">Excellent cleaning standards maintained</p>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Detailed Violations -->
+                    <div class="mb-6">
+                        <h5 class="text-lg font-bold text-gray-900 mb-4">Violations Found</h5>
+                        <!-- @MAP: inspection.violations.map(violation => ( -->
+                        <div class="space-y-4">
+                            <div class="border border-red-200 bg-red-50 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h6 class="font-semibold text-red-900" data-bind="violation.title">Critical - Hand Washing Facilities</h6>
+                                        <p class="text-red-700 text-sm" data-bind="violation.code">Violation Code: 08A</p>
+                                    </div>
+                                    <span class="bg-red-200 text-red-800 px-3 py-1 rounded-full text-xs font-medium">7 Points</span>
+                                </div>
+                                <p class="text-gray-700 mb-3" data-bind="violation.description">
+                                    Hand washing sink not properly stocked with soap and disposable towels in kitchen prep area.
+                                </p>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-600">
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        <span data-bind="violation.date">Corrected: January 16, 2025</span>
+                                    </span>
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Resolved
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="border border-yellow-200 bg-yellow-50 rounded-lg p-4" data-mock="true">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h6 class="font-semibold text-yellow-900" data-bind="violation.title">Minor - Temperature Control</h6>
+                                        <p class="text-yellow-700 text-sm" data-bind="violation.code">Violation Code: 02A</p>
+                                    </div>
+                                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">5 Points</span>
+                                </div>
+                                <p class="text-gray-700 mb-3" data-bind="violation.description">
+                                    Refrigerated salad ingredients measured at 43°F, slightly above the required 41°F maximum.
+                                </p>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-600">
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        <span data-bind="violation.date">Corrected: January 15, 2025</span>
+                                    </span>
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Resolved
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+
+                    <!-- Inspector Notes -->
+                    <div class="mb-6">
+                        <h5 class="text-lg font-bold text-gray-900 mb-4">Inspector Notes</h5>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-gray-700" data-bind="inspection.notes" data-mock="true">
+                                Overall excellent compliance with food safety regulations. Staff demonstrated good knowledge of proper procedures. 
+                                All critical violations were addressed immediately during inspection. Recommend continued monitoring of 
+                                refrigeration temperatures and maintaining adequate handwashing supplies.
+                            </p>
+                            <div class="mt-3 text-sm text-gray-600">
+                                <span class="font-medium">Inspector:</span> <span data-bind="inspection.inspector">Sarah Johnson, Health Inspector #4521</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                        <button class="bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Download PDF Report
+                        </button>
+                        <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                            <i class="fas fa-print mr-2"></i>
+                            Print Report
+                        </button>
+                        <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                            <i class="fas fa-share mr-2"></i>
+                            Share Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: DetailedInspectionModal -->
+
+    <!-- @COMPONENT: Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <i class="fas fa-shield-virus text-primary-blue text-xl"></i>
+                        <h3 class="text-lg font-bold">Health Inspector</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm">
+                        Providing transparent access to restaurant and hotel health inspection data to help consumers make informed decisions.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Data Sources</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-white transition-colors">UK FHRS API</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">NYC Health Dept</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Local Health Agencies</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API Documentation</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-white transition-colors">Understanding Ratings</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Food Safety Tips</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Report Issues</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Data Accuracy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Disclaimer</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>&copy; 2025 Health Inspector. All rights reserved. Data provided by government health agencies.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Search functionality placeholder
+            function handleSearch() {
+                // TODO: Implement API search call
+                console.log('Search functionality would be implemented here');
+            }
+
+            function handleSearchInput(event) {
+                // TODO: Implement autocomplete API call
+                console.log('Autocomplete functionality would be implemented here');
+            }
+
+            function viewDetailedReport() {
+                // TODO: Implement modal opening with detailed inspection data
+                document.getElementById('inspectionModal').classList.remove('hidden');
+            }
+
+            function closeModal() {
+                document.getElementById('inspectionModal').classList.add('hidden');
+            }
+
+            // Make functions available globally for button onclick handlers
+            window.closeModal = closeModal;
+            window.viewDetailedReport = viewDetailedReport;
+
+            // Mock search results loading
+            document.addEventListener('DOMContentLoaded', function() {
+                // TODO: Load initial search results or show welcome state
+                console.log('Page loaded - implement initial state');
+            });
+        })();
+    </script>
+</body>
+</html>
